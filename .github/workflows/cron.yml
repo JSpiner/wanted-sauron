@@ -19,4 +19,4 @@ jobs:
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
           LATEST_VIEW_COMPANY_ID: ${{ secrets.LATEST_VIEW_COMPANY_ID }}
-        run: ./gradlew run
+        run: echo $SLACK_WEBHOOK
