@@ -1,6 +1,7 @@
 import com.google.gson.Gson
 import java.net.URL
 import com.github.kittinunf.fuel.httpPost
+import java.lang.reflect.Field
 
 fun main(args: Array<String>) {
     val jobSearchApiUrl = WANTED_JOB_SEARCH_API_TEMPLATE.format(ANDROID_CATEGORY)
@@ -20,8 +21,15 @@ fun main(args: Array<String>) {
             .body(Gson().toJson(mapOf("text" to message)))
             .response()
     }.lastOrNull()
-        ?.let { Runtime.getRuntime().exec("$ENV_KEY_LATEST_VIEW_COMPANY_ID=${it.company.id}") }
+        ?.let { updateEnv(ENV_KEY_LATEST_VIEW_COMPANY_ID, it.company.id.toString()) }
 
+}
+
+fun updateEnv(name: String, value: String) {
+    val env = System.getenv()
+    val field: Field = env.javaClass.getDeclaredField("m")
+    field.isAccessible = true
+    (field.get(env) as MutableMap<String, String>)[name] = value
 }
 
 data class Response(val data: List<Data>)
