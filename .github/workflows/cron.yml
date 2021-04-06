@@ -16,4 +16,7 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Run
+        env:
+          ENV_KEY_SLACK_WEBHOOK: ${{ secrets.ENV_KEY_SLACK_WEBHOOK }}
+          ENV_KEY_LATEST_VIEW_COMPANY_ID: ${{ secrets.ENV_KEY_LATEST_VIEW_COMPANY_ID }}
         run: ./gradlew run
