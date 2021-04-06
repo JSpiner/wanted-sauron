@@ -20,7 +20,7 @@ fun main(args: Array<String>) {
             .body(Gson().toJson(mapOf("text" to message)))
             .response()
     }.lastOrNull()
-        ?.let { System.setProperty(ENV_KEY_LATEST_VIEW_COMPANY_ID, it.company.id.toString()) }
+        ?.let { Runtime.getRuntime().exec("set $ENV_KEY_LATEST_VIEW_COMPANY_ID=${it.company.id}") }
 
 }
 
