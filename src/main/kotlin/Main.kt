@@ -8,7 +8,7 @@ fun main(args: Array<String>) {
     val rawResponse = URL(jobSearchApiUrl).readText()
     val response = Gson().fromJson(rawResponse, Response::class.java)
 
-    val latestViewedCompanyId = System.getenv(ENV_KEY_LATEST_VIEW_COMPANY_ID).toIntOrNull() ?: -1
+    val latestViewedCompanyId = System.getenv(ENV_KEY_LATEST_VIEW_COMPANY_ID)?.toIntOrNull() ?: -1
     val unCheckedCompanyList = response.data
         .takeWhile { it.company.id != latestViewedCompanyId }
 
