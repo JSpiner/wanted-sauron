@@ -12,14 +12,15 @@ fun main(args: Array<String>) {
     val unCheckedCompanyList = response.data
         .takeWhile { it.company.id != latestViewedCompanyId }
 
-    unCheckedCompanyList.forEach { data ->
+    unCheckedCompanyList.onEach { data ->
         val message = ":bell: 띵동! 새로운 안드로이드 개발자 포지션이 생겼습니다.\n회사 : %s\n포지션 : %s\nhttps://www.wanted.co.kr/wd/%d"
             .format(data.company.name, data.position, data.company.id)
 
         System.getenv(ENV_KEY_SLACK_WEBHOOK).httpPost()
             .body(Gson().toJson(mapOf("text" to message)))
             .response()
-    }
+    }.lastOrNull()
+        ?.let { System.setProperty(ENV_KEY_LATEST_VIEW_COMPANY_ID, it.company.id.toString()) }
 
 }
 
