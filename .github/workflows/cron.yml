@@ -18,13 +18,5 @@ jobs:
       - name: Run
         env:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          LATEST_VIEW_COMPANY_ID: ${{ secrets.LATEST_VIEW_COMPANY_ID }}
+          REST_DB_KEY: ${{ secrets.REST_DB_KEY }}
         run: ./gradlew run
-      
-      - name: Update Company Id
-        uses: hmanzur/actions-set-secret@v2.0.0
-        with:
-          name: 'LATEST_VIEW_COMPANY_ID'
-          value: ${{ env.LATEST_VIEW_COMPANY_ID }}
-          repository: JSpiner/wanted-sauron
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}

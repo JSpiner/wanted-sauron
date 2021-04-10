@@ -1,7 +1,9 @@
+import com.github.kittinunf.fuel.core.Request
+import com.github.kittinunf.fuel.httpGet
 import com.google.gson.Gson
 import java.net.URL
 import com.github.kittinunf.fuel.httpPost
-import java.lang.reflect.Field
+import com.google.gson.reflect.TypeToken
 
 fun main(args: Array<String>) {
     val jobSearchApiUrl = WANTED_JOB_SEARCH_API_TEMPLATE.format(ANDROID_CATEGORY)
@@ -9,8 +11,14 @@ fun main(args: Array<String>) {
     val rawResponse = URL(jobSearchApiUrl).readText()
     val response = Gson().fromJson(rawResponse, Response::class.java)
 
-    val latestViewedCompanyId = System.getenv(ENV_KEY_LATEST_VIEW_COMPANY_ID)?.toIntOrNull() ?: -1
+    val latestViewedCompanyId = Gson().fromJson<List<ViewData>>(
+        LAST_VIEWED_ID_API_URL.httpGet()
+            .header("x-apikey", System.getenv(ENV_KEY_REST_DB_KEY))
+            .string(),
+        object : TypeToken<List<ViewData>>() {}.type
+    ).first().companyId
     val unCheckedCompanyList = response.data
+        .onEach { println(it.company.id) }
         .takeWhile { it.company.id != latestViewedCompanyId }
 
     unCheckedCompanyList.onEach { data ->
@@ -20,17 +28,18 @@ fun main(args: Array<String>) {
         System.getenv(ENV_KEY_SLACK_WEBHOOK).httpPost()
             .body(Gson().toJson(mapOf("text" to message)))
             .response()
-    }.lastOrNull()
-        ?.let { updateEnv(ENV_KEY_LATEST_VIEW_COMPANY_ID, it.company.id.toString()) }
+    }.firstOrNull()
+        ?.let {
+            LAST_VIEWED_ID_API_URL.httpPost(listOf("companyId" to it.company.id))
+                .header("x-apikey", System.getenv(ENV_KEY_REST_DB_KEY))
+                .response()
+        }
 
 }
 
-fun updateEnv(name: String, value: String) {
-    val env = System.getenv()
-    val field: Field = env.javaClass.getDeclaredField("m")
-    field.isAccessible = true
-    (field.get(env) as MutableMap<String, String>)[name] = value
-}
+fun Request.string() = responseString().third.component1()
+
+data class ViewData(val companyId: Int)
 
 data class Response(val data: List<Data>)
 
@@ -46,6 +55,7 @@ data class Company(
 
 const val ANDROID_CATEGORY = 677
 const val WANTED_JOB_SEARCH_API_TEMPLATE = "https://www.wanted.co.kr/api/v4/jobs?1617705029342&country=kr&tag_type_id=%d&job_sort=job.latest_order&locations=all&years=-1"
+const val LAST_VIEWED_ID_API_URL = "https://wantedsauron-870f.restdb.io/rest/view?sort=_id&dir=-1"
 
 const val ENV_KEY_SLACK_WEBHOOK = "SLACK_WEBHOOK"
-const val ENV_KEY_LATEST_VIEW_COMPANY_ID = "LATEST_VIEW_COMPANY_ID"
+const val ENV_KEY_REST_DB_KEY = "REST_DB_KEY"
