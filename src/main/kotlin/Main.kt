@@ -11,7 +11,7 @@ fun main(args: Array<String>) {
     val rawResponse = URL(jobSearchApiUrl).readText()
     val response = Gson().fromJson(rawResponse, Response::class.java)
 
-    val latestViewedCompanyId = Gson().fromJson<List<ViewData>>(
+    val latestViewedJobId = Gson().fromJson<List<ViewData>>(
         LAST_VIEWED_ID_API_URL.httpGet()
             .header("x-apikey", System.getenv(ENV_KEY_REST_DB_KEY))
             .string(),
@@ -19,11 +19,11 @@ fun main(args: Array<String>) {
     ).first().companyId
     val unCheckedCompanyList = response.data
         .onEach { println(it.company.id) }
-        .takeWhile { it.company.id != latestViewedCompanyId }
+        .takeWhile { it.id != latestViewedJobId }
 
     unCheckedCompanyList.onEach { data ->
         val message = ":bell: 띵동! 새로운 안드로이드 개발자 포지션이 생겼습니다.\n회사 : %s\n포지션 : %s\nhttps://www.wanted.co.kr/wd/%d"
-            .format(data.company.name, data.position, data.company.id)
+            .format(data.company.name, data.position, data.id)
 
         System.getenv(ENV_KEY_SLACK_WEBHOOK).httpPost()
             .body(Gson().toJson(mapOf("text" to message)))
@@ -44,14 +44,12 @@ data class ViewData(val companyId: Int)
 data class Response(val data: List<Data>)
 
 data class Data(
+    val id: Int,
     val position: String,
     val company: Company
 )
 
-data class Company(
-    val id: Int,
-    val name: String
-)
+data class Company(val name: String)
 
 const val ANDROID_CATEGORY = 677
 const val WANTED_JOB_SEARCH_API_TEMPLATE = "https://www.wanted.co.kr/api/v4/jobs?1617705029342&country=kr&tag_type_id=%d&job_sort=job.latest_order&locations=all&years=-1"
