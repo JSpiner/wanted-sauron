@@ -16,9 +16,8 @@ fun main(args: Array<String>) {
             .header("x-apikey", System.getenv(ENV_KEY_REST_DB_KEY))
             .string(),
         object : TypeToken<List<ViewData>>() {}.type
-    ).first().companyId
+    ).first().jobId
     val unCheckedCompanyList = response.data
-        .onEach { println(it.company.id) }
         .takeWhile { it.id != latestViewedJobId }
 
     unCheckedCompanyList.onEach { data ->
@@ -30,7 +29,7 @@ fun main(args: Array<String>) {
             .response()
     }.firstOrNull()
         ?.let {
-            LAST_VIEWED_ID_API_URL.httpPost(listOf("companyId" to it.company.id))
+            LAST_VIEWED_ID_API_URL.httpPost(listOf("companyId" to it.id))
                 .header("x-apikey", System.getenv(ENV_KEY_REST_DB_KEY))
                 .response()
         }
@@ -39,7 +38,7 @@ fun main(args: Array<String>) {
 
 fun Request.string() = responseString().third.component1()
 
-data class ViewData(val companyId: Int)
+data class ViewData(val jobId: Int)
 
 data class Response(val data: List<Data>)
 
