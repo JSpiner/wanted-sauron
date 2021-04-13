@@ -29,7 +29,7 @@ fun main(args: Array<String>) {
             .response()
     }.firstOrNull()
         ?.let {
-            LAST_VIEWED_ID_API_URL.httpPost(listOf("companyId" to it.id))
+            LAST_VIEWED_ID_API_URL.httpPost(listOf("jobId" to it.id))
                 .header("x-apikey", System.getenv(ENV_KEY_REST_DB_KEY))
                 .response()
         }
